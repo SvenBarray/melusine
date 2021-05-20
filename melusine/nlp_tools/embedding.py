@@ -55,8 +55,8 @@ class Embedding:
         tokens_column=None,
         workers=40,
         random_seed=42,
-        iter=15,
-        size=300,
+        epochs=15,
+        vector_size=300,
         method="word2vec_cbow",
         stop_removal=True,
         min_count=100,
@@ -70,10 +70,10 @@ class Embedding:
             Number of CPUs to use for the embedding training process (default=40).
         random_seed : int,
             Seed for reproducibility (default=42).
-        iter : int,
+        epochs : int,
             Number of epochs (default=15). Used for Word2Vec and GloVe only.
-        size : int,
-            Desired embedding size (default=300).
+        vector_size : int,
+            Desired embedding vector_size (default=300).
         window : int,
             If Word2Vec, window used to find center-context word relationships.
             If GloVe, window used to compute the co-occurence matrix.
@@ -108,7 +108,7 @@ class Embedding:
 
         if self.method in ["word2vec_sg", "word2vec_cbow"]:
             self.train_params = {
-                "size": size,
+                "vector_size": vector_size,
                 "alpha": 0.025,
                 "min_count": min_count,
                 "max_vocab_size": None,
@@ -120,7 +120,7 @@ class Embedding:
                 "hs": 0,
                 "ns_exponent": 0.75,
                 "cbow_mean": 1,
-                "iter": iter,
+                "epochs": epochs,
                 "null_word": 0,
                 "trim_rule": None,
                 "sorted_vocab": 1,
@@ -158,9 +158,9 @@ class Embedding:
                 "vectorizer_smooth_idf": True,
                 "vectorizer_sublinear_tf": False,
                 # TruncatedSVD Parameters
-                "svd_n_components": size,
+                "svd_n_components": vector_size,
                 "svd_algorithm": "randomized",
-                "svd_n_iter": iter,
+                "svd_n_iter": epochs,
                 "svd_random_state": random_seed,
                 "svd_tol": 0.0,
             }
@@ -180,9 +180,9 @@ class Embedding:
                 "vectorizer_max_features": None,
                 "vectorizer_vocabulary": None,
                 "vectorizer_binary": False,
-                "svd_n_components": size,
+                "svd_n_components": vector_size,
                 "svd_algorithm": "randomized",
-                "svd_n_iter": iter,
+                "svd_n_iter": epochs,
                 "svd_random_state": random_seed,
                 "svd_tol": 0.0,
             }
@@ -345,7 +345,7 @@ class Embedding:
         """Fits a Word2Vec Embedding on the given documents, and update the embedding attribute."""
 
         embedding = Word2Vec(
-            size=self.train_params["size"],
+            vector_size=self.train_params["vector_size"],
             alpha=self.train_params["alpha"],
             window=self.train_params["window"],
             min_count=self.train_params["min_count"],
@@ -359,7 +359,7 @@ class Embedding:
             negative=self.train_params["negative"],
             ns_exponent=self.train_params["ns_exponent"],
             cbow_mean=self.train_params["cbow_mean"],
-            iter=self.train_params["iter"],
+            epochs=self.train_params["epochs"],
             null_word=self.train_params["null_word"],
             trim_rule=self.train_params["trim_rule"],
             sorted_vocab=self.train_params["sorted_vocab"],
@@ -374,10 +374,10 @@ class Embedding:
         embedding.train(
             self.input_data,
             total_examples=embedding.corpus_count,
-            epochs=self.train_params["iter"],
+            epochs=self.train_params["epochs"],
         )
 
-        self.embedding = embedding.wv
+        self.embedding = embedding
 
     # def train_glove(self, X, input_column):
     #
@@ -387,8 +387,8 @@ class Embedding:
     #
     #    self.word2id = corpus.dictionary
     #
-    #    glove=Glove(no_components=self.size)
-    #    glove.fit(corpus.matrix, epochs=self.iter, no_threads=self.workers, )
+    #    glove=Glove(no_components=self.vector_size)
+    #    glove.fit(corpus.matrix, epochs=self.epochs, no_threads=self.workers, )
     #
     #    self.create_keyedvector_from_matrix(glove.word_vectors, self.word2id)
 
@@ -416,9 +416,9 @@ class Embedding:
         kv.vector_size = vector_size
         kv.vectors = embedding_matrix
 
-        kv.index2word = list(vocab.keys())
+        kv.index_to_key = list(vocab.keys())
 
-        kv.vocab = {
+        kv.key_to_index = {
             word: Vocab(index=word_id, count=0) for word, word_id in vocab.items()
         }
 

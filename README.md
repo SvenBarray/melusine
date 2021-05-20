@@ -164,13 +164,14 @@ In this example, the pre-processing functions applied are:
 - ``build_historic`` : When email is a conversation, reconstructs the individual message history
 - ``structure_email`` : Splits each messages into parts and tags them (tags: Hello, Body, Greetings, etc)
 
-### Phraser and Tokenizer pipeline
+### Phraser, Tokenizer and Stemmer pipeline
 
-A pipeline to train and apply the phraser end tokenizer is given below:
+A pipeline to train and apply the phraser, tokenizer and Stemmer is given below:
 
 ```python
 from melusine.nlp_tools.phraser import Phraser, phraser_on_body
 from melusine.nlp_tools.tokenizer import Tokenizer
+from melusine.nlp_tools.stemmer import stemming_tokens
 
 phraser = Phraser(input_column='clean_body')
 phraser.train(df_email)
@@ -180,10 +181,17 @@ functions_scheduler=[
     (phraser_on_body, (phraser,), ['clean_body'])
 ])
 
-phraser_tokenizer_pipeline = Pipeline([
-  ('PhraserTransformer', PhraserTransformer),
-  ('Tokenizer', Tokenizer(input_column='clean_body'))
+Stemming = TransformerScheduler(
+functions_scheduler=[
+    (stemming_tokens, None, ['stemmed_tokens'])
 ])
+
+phraser_tokenizer_pipeline = Pipeline([
+    ('PhraserTransformer', PhraserTransformer),
+    ('Tokenizer', Tokenizer(input_column='clean_body')),
+    ('Stemming', Stemming)
+])
+
 
 df_email = phraser_tokenizer_pipeline.fit_transform(df_email)
 ```

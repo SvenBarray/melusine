@@ -8,7 +8,7 @@ from melusine.config.config import ConfigJsonReader
 
 conf_reader = ConfigJsonReader()
 config = conf_reader.get_config_file()
-common_terms = config["words_list"]["stopwords"] + config["words_list"]["names"]
+connector_words = config["words_list"]["stopwords"] + config["words_list"]["names"]
 
 regex_tokenize_with_punctuations = r"(.*?[\s'])"
 tokenize_without_punctuations = r"(.*?)[\s']"
@@ -161,7 +161,7 @@ class Phraser:
     input_column : str,
         Input text column to consider for the phraser.
 
-    common_terms : list of integers, optional
+    connector_words : list of integers, optional
         List of stopwords.
         Default value, list of stopwords from nltk.
 
@@ -175,7 +175,7 @@ class Phraser:
 
     Attributes
     ----------
-    common_terms, threshold, min_count,
+    connector_words, threshold, min_count,
 
     stream : Streamer object,
         Builds a stream a tokens from a pd.Dataframe to train the embeddings.
@@ -195,13 +195,13 @@ class Phraser:
     def __init__(
         self,
         input_column="clean_body",
-        common_terms=common_terms,
+        connector_words=connector_words,
         threshold=350,
         min_count=200,
     ):
         self.logger = logging.getLogger("NLUtils.Phraser")
         self.logger.debug("creating a Phraser instance")
-        self.common_terms = common_terms
+        self.connector_words = connector_words
         self.threshold = threshold
         self.min_count = min_count
         self.input_column = input_column
@@ -255,7 +255,7 @@ class Phraser:
         self.streamer.to_stream(X)
         phrases = gensim.models.Phrases(
             self.streamer.stream,
-            common_terms=self.common_terms,
+            connector_words=self.connector_words,
             threshold=self.threshold,
             min_count=self.min_count,
         )

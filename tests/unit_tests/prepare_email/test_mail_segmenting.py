@@ -1,5 +1,5 @@
 import pandas as pd
-from melusine.prepare_email.mail_segmenting import structure_email, tag_signature
+from melusine.prepare_email.mail_segmenting import structure_email, tag_signature, convert_columns_to_string
 
 structured_historic = [
     {
@@ -71,6 +71,36 @@ def test_structure_email():
 
     result = input_df.apply(structure_email, axis=1)
     pd.testing.assert_series_equal(result, output_df)
+
+
+body = {
+    'body': [
+        " \n  \n  \n Bonjours, \n  \n Suite a notre conversation \
+téléphonique de Mardi , pourriez vous me dire la \n somme que je vous \
+dois afin d'd'être en régularisation . \n  \n Merci bonne journée", 
+        None, 
+        float('nan')
+    ]
+}
+
+output_columns_to_string = {
+    'body': [
+        " \n  \n  \n Bonjours, \n  \n Suite a notre conversation \
+téléphonique de Mardi , pourriez vous me dire la \n somme que je vous \
+dois afin d'd'être en régularisation . \n  \n Merci bonne journée", 
+        "", 
+        ""
+    ]
+}
+
+
+def test_convert_columns_to_string():
+    input_df = pd.DataFrame(body, columns = ['body'])
+
+    output_df = pd.DataFrame(output_columns_to_string, columns = ['body'])
+
+    result = input_df.apply(convert_columns_to_string, args=[range(3)], axis=0)
+    pd.testing.assert_frame_equal(result, output_df)
 
 
 structured_historic_signature = [

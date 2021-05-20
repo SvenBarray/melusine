@@ -14,8 +14,11 @@ regex_flags_dict = REGEX_CLEAN["flags_dict"]
 regex_clean_header_dict = REGEX_CLEAN["clean_header_dict"]
 regex_remove_multiple_spaces_list = REGEX_CLEAN["remove_multiple_spaces_list"]
 
+from emoji import get_emoji_regexp
+emoji_pattern = get_emoji_regexp()
 
-def clean_body(row, flags=True):
+
+def clean_body(row, flags: bool=True, flagging_items: bool=True, flag_list: list=None, flagging_emojis: bool = False):
     """Clean body column. The cleaning involves the following operations:
         - Cleaning the text
         - Removing the multiple spaces
@@ -25,22 +28,33 @@ def clean_body(row, flags=True):
     ----------
     row : row of pandas.Dataframe object,
         Data contains 'last_body' column.
-
     flags : boolean, optional
         True if you want to flag relevant info, False if not.
         Default value, True.
-
+    flagging_items: boolean, optional
+        Default value, True.
+        True if you want to flag the items listed in the flag_list, False if you want to flag everything except for the items listed in the flag_list.
+    flag_list: list, optional
+        List of flags.
+        Default value, None.
+        None list equivalent to full flag list
+        Full flag list: [" flag_cons_ ", " flag_mail_ ", " flag_url_ ", " flag_phone_ ", " flag_immat_ ", " flag_amount_ ", " flag_cp_ ", " flag_time_ ", " flag_date_ ", " flag_mention_ ", " flag_hashtag_ "]
+        " flag_emojis_ " not part of the full flag list as emojis are treated separately
+    flagging_emojis: boolean, optional
+        True if you want to Flag emojis, False if not
+        Default value, False
+        WARNING : Execution time for flagging emojis is significantly higher than for other flags, which may make it inconvenient on a large sample size of emails, thus emojis aren't flagged by default. 
     Returns
     -------
     row of pandas.DataFrame object or pandas.Series if apply to all DF.
     """
     text = str(row["last_body"])
     clean_body = clean_text(text)
-    clean_body = flag_items(clean_body, flags=flags)
+    clean_body = flag_items(clean_body, flags=flags, flagging_items=flagging_items, flag_list=flag_list, flagging_emojis=flagging_emojis)
     return clean_body
 
 
-def clean_header(row, flags=True):
+def clean_header(row, flags: bool=True, flagging_items: bool=True, flag_list: list=None, flagging_emojis: bool = False):
     """Clean the header column. The cleaning involves the following operations:
         - Removing the transfers and answers indicators
         - Cleaning the text
@@ -50,11 +64,22 @@ def clean_header(row, flags=True):
     ----------
     row : row of pandas.Dataframe object,
         Data contains 'header' column.
-
     flags : boolean, optional
         True if you want to flag relevant info, False if not.
         Default value, True.
-
+    flagging_items: boolean, optional
+        Default value, True.
+        True if you want to flag the items listed in the flag_list, False if you want to flag everything except for the items listed in the flag_list.
+    flag_list: list, optional
+        List of flags.
+        Default value, None.
+        None list equivalent to full flag list
+        Full flag list: [" flag_cons_ ", " flag_mail_ ", " flag_url_ ", " flag_phone_ ", " flag_immat_ ", " flag_amount_ ", " flag_cp_ ", " flag_time_ ", " flag_date_ ", " flag_mention_ ", " flag_hashtag_ "]
+        " flag_emojis_ " not part of the full flag list as emojis are treated separately
+    flagging_emojis: boolean, optional
+        True if you want to Flag emojis, False if not
+        Default value, False
+        WARNING : Execution time for flagging emojis is significantly higher than for other flags, which may make it inconvenient on a large sample size of emails, thus emojis aren't flagged by default. 
     Returns
     -------
     row of pd.DataFrame object or pandas.Series if apply to all DF.
@@ -62,7 +87,7 @@ def clean_header(row, flags=True):
     text = str(row["header"])
     clean_header = remove_transfer_answer_header(text)
     clean_header = clean_text(clean_header)
-    clean_header = flag_items(clean_header, flags=flags)
+    clean_header = flag_items(clean_header, flags=flags, flagging_items=flagging_items, flag_list=flag_list, flagging_emojis=flagging_emojis)
     return clean_header
 
 
@@ -150,7 +175,7 @@ def remove_multiple_spaces_and_strip_text(text):
     return text
 
 
-def flag_items(text, flags=True):
+def flag_items(text: str, flags: bool=True, flagging_items: bool=True, flag_list: list=None, flagging_emojis: bool = False) -> str:
     """Flag relevant information
         ex : amount, phone number, email address, postal code (5 digits)..
 
@@ -158,22 +183,50 @@ def flag_items(text, flags=True):
     ----------
     text : str,
         Body content.
-
     flags : boolean, optional
         True if you want to flag relevant info, False if not.
         Default value, True.
+    flagging_items: boolean, optional
+        Default value, True.
+        True if you want to flag the items listed in the flag_list, False if you want to flag everything except for the items listed in the flag_list.
+    flag_list: list, optional
+        List of flags.
+        Default value, None.
+        None list equivalent to full flag list
+        Full flag list: [" flag_cons_ ", " flag_mail_ ", " flag_url_ ", " flag_phone_ ", " flag_immat_ ", " flag_amount_ ", " flag_cp_ ", " flag_time_ ", " flag_date_ ", " flag_mention_ ", " flag_hashtag_ "]
+        " flag_emojis_ " not part of the full flag list as emojis are treated separately
+    flagging_emojis: boolean, optional
+        True if you want to Flag emojis, False if not
+        Default value, False
+        WARNING : Execution time for flagging emojis is significantly higher than for other flags, which may make it inconvenient on a large sample size of emails, thus emojis aren't flagged by default. 
+    Returns
+    -------
+    str
+    """
+    if flags:
+        for regex, value in regex_flags_dict.items():
+            if (flag_list == None) or (flagging_items and value in flag_list) or (flagging_items == False and value not in flag_list):
+                text = re.sub(pattern=regex, repl=value, string=text, flags=re.IGNORECASE)
+        if flagging_emojis:
+            text = _flag_emojis(text)
+    return text
+
+
+def _flag_emojis(text: str) -> str:
+    """Flag emojis
+    WARNING : Execution time for flagging emojis is significantly higher than for other flags, which may make it inconvenient on a large sample size of emails, thus emojis aren't flagged by default. 
+
+    Parameters
+    ----------
+    text : str,
+        Body content.
 
     Returns
     -------
     str
-
     """
-    if flags:
-        for regex, value in regex_flags_dict.items():
-            text = re.sub(pattern=regex, repl=value, string=text, flags=re.IGNORECASE)
-        return text
-    else:
-        return text
+    text = emoji_pattern.sub(repl=" flag_emoji_ ",  string=text)
+    return text
 
 
 def remove_transfer_answer_header(text):

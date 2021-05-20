@@ -1,3 +1,4 @@
+import numpy as np
 import re
 from melusine.config.config import ConfigJsonReader
 from melusine.prepare_email.cleaning import remove_accents
@@ -196,6 +197,21 @@ def _find_meta(regex, message):
         return None
     else:
         return groups[0]
+
+
+def convert_columns_to_string(row, list_col):
+    """Convert none string object like float to string and check first for nan"""
+    for col in list_col:
+        text = row[col]
+        if not isinstance(text, str):
+            if not text:
+                text = ""
+            elif np.isnan(text):
+                text = ""
+            else:
+                text = str(text)
+        row[col] = text
+    return row
 
 
 def tag_parts_message(text):
@@ -465,6 +481,7 @@ def _detect_signature_parts(last_body_parts, part_index, token_threshold):
     """
     Check the length of the "BODY" parts at the end of a message.
     If all the ending "BODY" parts contains fewer words than the specified threshold, return the indices of the parts.
+    newline_character is in config.conf and is '\n' by default. Changeable in case your mail database uses another newline separator.
 
     Parameters
     ----------
@@ -492,8 +509,12 @@ def _detect_signature_parts(last_body_parts, part_index, token_threshold):
         if part_tag["tags"] == "BODY":
 
             # Split text to sentences (Because identical consecutive parts have been previously merged)
-            sentences = part_tag["part"].split(newline_character)
-
+            # newline_character is in config.conf and is '\n' by default. Changeable in case your mail database uses another newline separator.
+            if newline_character:
+                sentences = part_tag["part"].split(newline_character)
+            else:
+                sentences = [part_tag["part"]]
+                
             # Count number of words/tokens in sentences
             for sentence in sentences:
                 n_words = len(re.sub(r"[;.,:!?]", "", sentence).split())

@@ -75,8 +75,11 @@
           "\\d{1,2}\\s?(?::|h|H|heure)\\s?(?:\\d{2})?(?::\\d{2})?": " flag_time_ ",
           "(?<![\\d\\.])(?<!\\d\\s)(?:\\d{4}|\\d{2}|\\d)[\\/\\-\\.\\s]\\d{2}(?:[\\/\\-\\.\\s](?:\\d{4}|\\d{2}|\\d))?(?!(?:\\d|.\\d))(?!\\s?(?:par\\svirements?|euro?s?|€|centimes|\\$|dollars?|EUR)|\\d)": " flag_date_ ",
           "(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(?:\\s\\d{1,2}\\b)?(?:\\s(?:\\b(?:janvier|fevrier|mars|avril|mai|juin|juillet|aout?|septembre|octobre|novembre|decembre|janv?\\.?|fevr?\\.?|avr\\.?|juil\\.?|sept?\\.?|oct\\.?|nov\\.?|dec\\.?)\\b)(?:\\s\\d{4}|\\d{2})?)?": " flag_date_ ",
-          "(?:\\b\\d{1,2}\\s?)?\\b(?:janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t?|septembre|octobre|novembre|d[ée]cembre|janv?\\.?|f[ée]vr?\\.?|avr\\.?|juil\\.?|sept?\\.?|oct\\.?|nov\\.?|d[ée]c\\.?)[\\b\\s](?:\\d{2,4})?": " flag_date_ "},
-        "clean_header_dict": {
+          "(?:\\b\\d{1,2}\\s?)?\\b(?:janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t?|septembre|octobre|novembre|d[ée]cembre|janv?\\.?|f[ée]vr?\\.?|avr\\.?|juil\\.?|sept?\\.?|oct\\.?|nov\\.?|d[ée]c\\.?)[\\b\\s](?:\\d{2,4})?": " flag_date_ ",
+          "(^|\\s)@\\w+": " flag_mention_ ",
+          "(^|\\s)#\\w+": " flag_hashtag_ "
+        },
+          "clean_header_dict": {
           "^re\\s*:": "",
           "^fw\\s*:": "",
           "^tr\\s*:": "",

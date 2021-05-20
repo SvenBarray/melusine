@@ -72,6 +72,10 @@ def test_remove_transfer_answer_header(input_str, expected_str):
             "le 14/12 tu me devras 20.05 dollars",
             "le  flag_date_  tu me devras  flag_amount_ ",
         ),
+        (
+            "@Fabien On se voit tout à l'heure alors #apéro",
+            " flag_mention_  On se voit tout à l'heure alors flag_hashtag_ ",
+        ),
     ],
 )
 def test_flag_items(input_str, expected_str):
