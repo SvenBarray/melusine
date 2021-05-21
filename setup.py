@@ -31,6 +31,7 @@ requirements = [
     "astunparse==1.6.3",
     "flatbuffers==2.0",
     "keras_preprocessing==1.1.2",
+    "psutil==5.8.0",
     "emoji==1.2.0",
     "nltk==3.6.2",
 ]

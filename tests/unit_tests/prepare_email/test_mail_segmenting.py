@@ -1,5 +1,5 @@
 import pandas as pd
-from melusine.prepare_email.mail_segmenting import structure_email, tag_signature, convert_columns_to_string
+from melusine.prepare_email.mail_segmenting import structure_email, convert_columns_to_string, extract_sentences_from_clean_body, tag_signature
 
 structured_historic = [
     {
@@ -101,6 +101,35 @@ def test_convert_columns_to_string():
 
     result = input_df.apply(convert_columns_to_string, args=[range(3)], axis=0)
     pd.testing.assert_frame_equal(result, output_df)
+
+
+clean_body = {
+    'clean_body': [
+        "je vous avais contactes car j'avais pour projet d'agrandir ma maison. j'avais recu un devis pour lequel je n'avais pas donne suite, les travaux n'etant pas encore realises. le projet a maintenant ete porte a son terme et je voudrais donc revoir votre offre si possible. je desire garder le meme type de contrat.", 
+        "je vous informe que la nouvelle immatriculation est enfin faite. je vous prie de trouver donc la carte grise ainsi que la nouvelle immatriculation. je vous demanderai de faire les changements necessaires concernant lassurance."
+    ]
+}
+
+output_extract_sentences_from_clean_body = [
+                ["je vous avais contactes car j'avais pour projet d'agrandir ma maison.",
+                "j'avais recu un devis pour lequel je n'avais pas donne suite, les travaux n'etant pas encore realises.",
+                'le projet a maintenant ete porte a son terme et je voudrais donc revoir votre offre si possible.',
+                'je desire garder le meme type de contrat.'], 
+
+                ['je vous informe que la nouvelle immatriculation est enfin faite.',
+                'je vous prie de trouver donc la carte grise ainsi que la nouvelle immatriculation.',
+                'je vous demanderai de faire les changements necessaires concernant lassurance.']
+    ]
+
+
+
+def test_extract_sentences_from_clean_body():
+    input_df = pd.DataFrame(clean_body, columns = ['clean_body'])
+
+    output_df = pd.Series(output_extract_sentences_from_clean_body)
+    
+    result = input_df.apply(extract_sentences_from_clean_body, axis=1)
+    pd.testing.assert_series_equal(result, output_df)
 
 
 structured_historic_signature = [

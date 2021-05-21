@@ -259,6 +259,15 @@ def split_message_to_sentences(text, sep_=r"(.*?[;.,?!])"):
     return sentence_list
 
 
+def extract_sentences_from_clean_body(row):
+    sentences = split_message_to_sentences(row["clean_body"])
+    filtered_sentences = []
+    for idx,s in enumerate(sentences):
+        if not re.search(r'^[;\s]+$',s):
+            filtered_sentences.append(s)
+    return filtered_sentences
+
+
 def tag_sentence(sentence, default="BODY"):
     """Tag a sentence.
     If the sentence cannot be tagged it will tag the subsentences

@@ -178,7 +178,7 @@ class SemanticDetector(BaseEstimator, TransformerMixin):
                 self.anti_seed_list,
             ) = self.compute_seeds_from_root(embedding, self.base_anti_seed_words)
 
-        # self.seed_list = [token for token in self.seed_list if token in embedding.embedding.vocab.keys()]
+        # self.seed_list = [token for token in self.seed_list if token in embedding.embedding.wv.key_to_index.keys()]
 
         if not self.seed_list:
             raise ValueError(
@@ -212,7 +212,7 @@ class SemanticDetector(BaseEstimator, TransformerMixin):
             all the seedwords found with the given prefixes
 
         """
-        words = list(embedding.embedding.vocab.keys())
+        words = list(embedding.embedding.wv.key_to_index.keys())
         seed_dict = dict()
         seed_list = []
 
@@ -244,15 +244,15 @@ class SemanticDetector(BaseEstimator, TransformerMixin):
         """
 
         if type(embedding) == Word2Vec:
-            embedding = embedding.wv
+            embedding = embedding
 
-        words = list(embedding.embedding.vocab.keys())
+        words = list(embedding.embedding.wv.key_to_index.keys())
 
         lexicon_mat = np.zeros((len(seed_list), len(words)))
 
         for i, seed in enumerate(seed_list):
             for j, word in enumerate(words):
-                similarity_value = embedding.embedding.similarity(seed, word)
+                similarity_value = embedding.embedding.wv.similarity(seed, word)
                 lexicon_mat[i, j] = similarity_value
 
         lexicon_values = self.aggregation_function_seed_wise(lexicon_mat)
